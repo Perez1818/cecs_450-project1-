@@ -10,14 +10,17 @@
     <div id="chart"></div>
     <script src="d3.v7.min.js"></script>
     <script src="topojson.js"></script>
-    <script>
-        //Use Zoom to bounding box: https://observablehq.com/@d3/zoom-to-bounding-box
+    <script type="module"> 
+    //<script type="module">
+    //   import { stateAndObe } from './zoombounding.js';
+    //Use Zoom to bounding box: https://observablehq.com/@d3/zoom-to-bounding-box
         //- features geometries of all states https://cdn.jsdelivr.net/npm/us-atlas@3/counties-albers-10m.json 
         //- topology: topojson.js: https://unpkg.com/topojson@3
         //- html: how to use d3 code: https://d3js.org/getting-started
         //go live with ip: http://localhost:8080/Zoombounding.html
         //Pan and zoom, or click to zoom into a particular state using zoom.transform transitions.The bounding box is computed using path.bounds.
-        function createChart(us) {
+        import { stateAndObe } from './zoombounding.js';
+        function Chart(us) {
             const width = 1000;
             const height = 1000;
 
@@ -35,19 +38,19 @@
             const path = d3.geoPath();
 
             const g = svg.append("g");
-            
+            const populationData = stateAndObe; //import from zoombounding.js. Color scale based on obesity data
             //change color scale based on population data ***testing purpose only***
-            /*const colorScale = d3.scaleLinear()
+            const colorScale = d3.scaleLinear()
                 .domain([d3.min(Object.values(populationData)), d3.max(Object.values(populationData))])
-                .range(["#f0f0f0", "#800026"]);*/
-
+                .range(["#000000", "#800026"]);
+            console.log(populationData); 
             const states = g.append("g")
                 .attr("fill", "#444")
                 .attr("cursor", "pointer")
                 .selectAll("path")
                 .data(topojson.feature(us, us.objects.states).features)
                 .join("path")
-                //.attr("fill", d => colorScale(populationData[d.properties.name] || 0)) //change color scale based on population data ***testing purpose only***
+                .attr("fill", d => colorScale(populationData[d.properties.name] || 0)) //change color scale based on population data ***testing purpose only***
                 .on("click", clicked)
                 .attr("d", path);
 
@@ -72,8 +75,8 @@
             svg.call(zoom);
 
             function reset() {
-                states.transition().style("fill", null);
-                //states.transition().style("fill", d => colorScale(populationData[d.properties.name] || 0)); //change color scale based on population data ***testing purpose only***
+                //states.transition().style("fill", null);
+                states.transition().style("fill", d => colorScale(populationData[d.properties.name] || 0)); //change color scale based on population data ***testing purpose only***
                 svg.transition().duration(750).call(
                     zoom.transform,
                     d3.zoomIdentity,
@@ -84,8 +87,8 @@
             function clicked(event, d) {
                 const [[x0, y0], [x1, y1]] = path.bounds(d);
                 event.stopPropagation();
-                states.transition().style("fill", null);
-                //states.transition().style("fill", d => colorScale(populationData[d.properties.name] || 0)); //change color scale based on population data ***testing purpose only***
+                //states.transition().style("fill", null);
+                states.transition().style("fill", d => colorScale(populationData[d.properties.name] || 0)); //change color scale based on population data ***testing purpose only***
                 d3.select(this).transition().style("fill", "red");
                 svg.transition().duration(750).call(
                     zoom.transform,
@@ -110,7 +113,7 @@
         d3.json("states-albers-10m.json")
             .then(us => {
                 console.log("TopoJSON loaded:", us); //check if JSON data is loaded
-                const chart = createChart(us);
+                const chart = Chart(us);
                 document.getElementById("chart").appendChild(chart);
             })
             .catch(err => console.error("fail to load topojson:", err));
