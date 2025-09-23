@@ -31,6 +31,7 @@ function getRaceData(stateName) {
             }
 
             if (database) {
+                console.log("Get data for ", stateName);
                 return database;
             } else {
                 return null;
@@ -76,6 +77,7 @@ function getAgeData(stateName) {
             }
 
             if (database) {
+                console.log("Get data for ", stateName);
                 return database;
             } else {
                 return null;
@@ -87,8 +89,3 @@ function getAgeData(stateName) {
         });
 }
 
-// try function getRaceData with California
-console.log("Testing getRaceData function: California");
-getRaceData("California").then(database => console.log(database));
-console.log("Testing getAgeData function: California");
-getAgeData("California").then(database => console.log(database));
