@@ -180,9 +180,13 @@
                         .attr("y", "0.7em")
                         .attr("fill-opacity", 0.7)
                         .text(d => d.data.value.toLocaleString("en-US")));
+                
                 //return pieSvg.node();
-                g.append(() => pieSvg.node())  // append pie chart vào group g for showing charting together
+                //chatGPT suggestion to append pie chart into group g for showing charting together
+                const [cx, cy] = path.centroid(d);
+                g.append(() => pieSvg.node())  // append pie chart into group g for showing charting together
                 .attr("class", "pie-chart")
+                .attr("transform", `translate(${cx}, ${cy}) scale(${radius/ (pieWidth/2)})`);
             }
 
             function zoomed(event) {
