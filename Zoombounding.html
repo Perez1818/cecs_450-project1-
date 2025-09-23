@@ -8,8 +8,9 @@
 
 <body>
     <div id="chart"></div>
-    <script src="d3.v7.min.js"></script>
-    <script src="topojson.js"></script>
+    <script src="/library/d3.v7.min.js"></script>
+    <script src="/library/topojson.js"></script>
+    <script src="/piechart.js"></script>
     <script type="module"> 
     //<script type="module">
     //   import { stateAndObe } from './zoombounding.js';
@@ -21,8 +22,8 @@
         //Pan and zoom, or click to zoom into a particular state using zoom.transform transitions.The bounding box is computed using path.bounds.
         import { stateAndObe } from './zoombounding.js';
         function Chart(us) {
-            const width = 1000;
-            const height = 1000;
+            const width = 2000;
+            const height = 2000;
 
             const zoom = d3.zoom()
                 .scaleExtent([1, 8])
@@ -42,10 +43,10 @@
             //change color scale based on population data ***testing purpose only***
             const colorScale = d3.scaleLinear()
                 .domain([d3.min(Object.values(populationData)), d3.max(Object.values(populationData))])
-                .range(["#000000", "#800026"]);
+                .range(["#FFFFFf", "#800026"]);
             console.log(populationData); 
             const states = g.append("g")
-                .attr("fill", "#444")
+                .attr("fill", "#444")//default color gray
                 .attr("cursor", "pointer")
                 .selectAll("path")
                 .data(topojson.feature(us, us.objects.states).features)
@@ -64,19 +65,19 @@
                 .attr("stroke-linejoin", "round")
                 .attr("d", path(topojson.mesh(us, us.objects.states, (a, b) => a !== b)));
 
-            g.selectAll("text")
+            /*g.selectAll("text")
                 .data(topojson.feature(us, us.objects.states).features)
                 .join("text")
                 .attr("x", d => d3.geoPath().centroid(d)[0]) 
                 .attr("y", d => d3.geoPath().centroid(d)[1])
-                .text(d => d.properties.name);
+                .text(d => d.properties.name);*/
                 
 
             svg.call(zoom);
 
             function reset() {
                 //states.transition().style("fill", null);
-                states.transition().style("fill", d => colorScale(populationData[d.properties.name] || 0)); //change color scale based on population data ***testing purpose only***
+                states.transition().style("fill", d => colorScale(populationData[d.properties.name] || 0)); 
                 svg.transition().duration(750).call(
                     zoom.transform,
                     d3.zoomIdentity,
@@ -88,8 +89,8 @@
                 const [[x0, y0], [x1, y1]] = path.bounds(d);
                 event.stopPropagation();
                 //states.transition().style("fill", null);
-                states.transition().style("fill", d => colorScale(populationData[d.properties.name] || 0)); //change color scale based on population data ***testing purpose only***
-                d3.select(this).transition().style("fill", "red");
+                states.transition().style("fill", d => colorScale(populationData[d.properties.name] || 0));
+                d3.select(this).transition().style("fill", "white");
                 svg.transition().duration(750).call(
                     zoom.transform,
                     d3.zoomIdentity
@@ -98,6 +99,9 @@
                         .translate(-(x0 + x1) / 2, -(y0 + y1) / 2),
                     d3.pointer(event, svg.node())
                 );
+                // Start Draw Pie Chart when click on a state
+                const stateName = d.properties.name;
+                
             }
 
             function zoomed(event) {
@@ -105,7 +109,7 @@
                 g.attr("transform", transform);
                 g.attr("stroke-width", 1 / transform.k);
             }
-
+            
             return svg.node();
         }
 
