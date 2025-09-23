@@ -12,12 +12,17 @@
     <script src="/library/topojson.js"></script>
     <script src="/piechart.js"></script>
     <script type="module">
-        //<script type="module">
-        //   import { stateAndObe } from './zoombounding.js';
-        //Use Zoom to bounding box: https://observablehq.com/@d3/zoom-to-bounding-box
+        //References:
+        //- Use Zoom to bounding box: https://observablehq.com/@d3/zoom-to-bounding-box
+        //- Pie chart: https://observablehq.com/@d3/pie-chart
         //- features geometries of all states https://cdn.jsdelivr.net/npm/us-atlas@3/counties-albers-10m.json 
         //- topology: topojson.js: https://unpkg.com/topojson@3
         //- html: how to use d3 code: https://d3js.org/getting-started
+        //- Combine Zoomed map with pie chart: ChatGPT
+        //- Change Color Map: ChatGPT
+        //- Tool: Visual Studio Code
+        //- Data source: Obesity data from CDC 2019: https://www.cdc.gov/obesity/data/prevalence-maps.html
+
         //go live with ip: http://localhost:8080/Zoombounding.html
         //Pan and zoom, or click to zoom into a particular state using zoom.transform transitions.The bounding box is computed using path.bounds.
         import { stateAndObe } from './zoombounding.js';
@@ -40,9 +45,15 @@
 
             const g = svg.append("g");
             const populationData = stateAndObe; //import from zoombounding.js. Color scale based on obesity data
-            //change color scale based on population data ***testing purpose only***
+            
+            
+            
+            
+            //change color scale based on population data ***testing purpose only: ChatGPT***
+            const minValue = d3.min(Object.values(populationData));
+            const maxValue = d3.max(Object.values(populationData));
             const colorScale = d3.scaleLinear()
-                .domain([d3.min(Object.values(populationData)), d3.max(Object.values(populationData))])
+                .domain([minValue, maxValue])
                 .range(["#FFFFFf", "#800026"]);
             console.log(populationData);
             const states = g.append("g")
@@ -54,7 +65,6 @@
                 .attr("fill", d => colorScale(populationData[d.properties.name] || 0)) //change color scale based on population data ***testing purpose only***
                 .on("click", clicked)
                 .attr("d", path);
-
 
             states.append("title")
                 .text(d => d.properties.name);
@@ -72,6 +82,48 @@
                 .attr("y", d => d3.geoPath().centroid(d)[1])
                 .text(d => d.properties.name);*/
 
+            // Adding simple legend for 0%, 50%, 100%
+            const legend = svg.append("g")
+                .attr("transform", `translate(${(width - 150) / 2}, 20)`); // Center at top
+
+            // Define three key points for the legend
+            /*const legendPoints = [
+                { value: 0, color: colorScale(0), label: "0%" },
+                { value: 50, color: colorScale(50), label: "50%" },
+                { value: 100, color: colorScale(100), label: "100%" }
+            ];*/
+            const legendPoints = [
+                { value: minValue, color: colorScale(minValue), label: "0%" },
+                { value: (minValue + maxValue) / 2, color: colorScale((minValue + maxValue) / 2), label: "50%" },
+                { value: maxValue, color: colorScale(maxValue), label: "100%" }
+            ];
+
+            // Draw legend squares and labels
+            legendPoints.forEach((point, i) => {
+                // Draw square
+                legend.append("rect")
+                    .attr("x", i * 50) // Space squares 50px apart
+                    .attr("y", 0)
+                    .attr("width", 30)
+                    .attr("height", 30)
+                    .style("fill", point.color);
+
+                // Draw label
+                legend.append("text")
+                    .attr("x", i * 50 + 10)
+                    .attr("y", 35)
+                    .attr("text-anchor", "middle")
+                    .style("font-size", "12px")
+                    .text(point.label);
+            });
+
+            // Add legend title
+            legend.append("text")
+                .attr("x", 75) // Center of 3 squares (3 * 50 / 2)
+                .attr("y", -5)
+                .attr("text-anchor", "middle")
+                .style("font-size", "14px")
+                .text("Obesity Rate (%)");
 
             svg.call(zoom);
 
@@ -87,6 +139,7 @@
             }
 
             async function clicked(event, d) {
+                g.selectAll(".pie-chart").remove(); 
                 const [[x0, y0], [x1, y1]] = path.bounds(d);
                 event.stopPropagation();
                 //states.transition().style("fill", null);
@@ -117,8 +170,8 @@
                     console.error("Check data in piechart.js");
                     return;
                 }
-
-                const radius = Math.min((x1 - x0) / 2, (y1 - y0) / 2) / 2;
+                //set up pie chart dimensions
+                const radius = Math.min((x1 - x0) , (y1 - y0));//big as state size
                 const pieWidth = 500;
                 const pieHeight = Math.min(pieWidth, 500);
 
@@ -150,7 +203,7 @@
                     .attr("width", pieWidth)
                     .attr("height", pieHeight)
                     .attr("viewBox", [-pieWidth / 2, -pieHeight / 2, pieWidth, pieHeight])
-                    .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
+                    .attr("style", "max-width: 120%; height: auto; font: 10px sans-serif;");
 
                 // Add a sector path for each value.
                 pieSvg.append("g")
@@ -180,13 +233,13 @@
                         .attr("y", "0.7em")
                         .attr("fill-opacity", 0.7)
                         .text(d => d.data.value.toLocaleString("en-US")));
-                
+
                 //return pieSvg.node();
                 //chatGPT suggestion to append pie chart into group g for showing charting together
                 const [cx, cy] = path.centroid(d);
                 g.append(() => pieSvg.node())  // append pie chart into group g for showing charting together
-                .attr("class", "pie-chart")
-                .attr("transform", `translate(${cx}, ${cy}) scale(${radius/ (pieWidth/2)})`);
+                    .attr("class", "pie-chart")
+                    .attr("transform", `translate(${cx-100}, ${cy-100}) scale(${radius / (pieWidth /2)})`);//scale to fit into the state
             }
 
             function zoomed(event) {
@@ -195,7 +248,7 @@
                 g.attr("stroke-width", 1 / transform.k);
             }
             return svg.node();
-            
+
         }
 
         //Use local topojson file states-albers-10m.json
