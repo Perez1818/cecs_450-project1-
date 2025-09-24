@@ -7,11 +7,25 @@
 </head>
 
 <body>
+    <div style="margin:10px;">
+    <label for="dataChoice">Show data by: </label>
+    <select id="dataChoice">
+        <option value="race">Race</option>
+        <option value="income">Income</option>
+        <option value="age">Age</option>
+    </select>
+</div>
+<div id="chart"></div>
+
     <div id="chart"></div>
     <script src="/library/d3.v7.min.js"></script>
     <script src="/library/topojson.js"></script>
     <script src="/piechart.js"></script>
     <script type="module">
+        let choice = "race"; // default
+        document.getElementById("dataChoice").addEventListener("change", function (e) {
+    choice = e.target.value;
+});
         //References:
         //- Use Zoom to bounding box: https://observablehq.com/@d3/zoom-to-bounding-box
         //- Pie chart: https://observablehq.com/@d3/pie-chart
@@ -156,7 +170,8 @@
                 // Start Draw Pie Chart when click on a state
                 const stateName = d.properties.name;
                 let data = {};
-                data = await getRaceData(stateName);
+                // data = await getRaceData(stateName);
+
                 /*if (state) {
                     if (choice == "race") {
                         data = await getRaceData(state);
@@ -165,6 +180,18 @@
                         data = await getAgeData(state);
                     }
                 }*/
+               if (choice === "race") 
+                {
+                    data = await getRaceData(stateName);
+                } else if (choice === "income") 
+                {
+                    data = await getIncomeData(stateName);
+                }
+                else if (choice == "age")
+                 {
+                    data = await getAgeData(stateName);
+                }
+
 
                 if (!data || !data.length) {
                     console.error("Check data in piechart.js");
