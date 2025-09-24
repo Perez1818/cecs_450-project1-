@@ -45,7 +45,7 @@
             const height = 2000;
 
             const zoom = d3.zoom()
-                .scaleExtent([1, 30])//limit zoom scale
+                .scaleExtent([1, 100])//limit zoom scale
                 .on("zoom", zoomed);
 
             const svg = d3.create("svg")
@@ -59,9 +59,6 @@
 
             const g = svg.append("g");
             const populationData = stateAndObe; //import from zoombounding.js. Color scale based on obesity data
-
-
-
 
             //change color scale based on population data ***testing purpose only: ChatGPT***
             const minValue = d3.min(Object.values(populationData));
@@ -96,7 +93,7 @@
                 .attr("y", d => d3.geoPath().centroid(d)[1])
                 .text(d => d.properties.name);*/
 
-            // Adding simple legend for 0%, 50%, 100%
+/**** Adding simple legend for 0%, 50%, 100% ****/
             const legend = svg.append("g")
                 .attr("transform", `translate(${(width - 150) / 2}, 20)`); // Center at top
 
@@ -162,7 +159,7 @@
                         .translate(-(x0 + x1) / 2, -(y0 + y1) / 2),
                     d3.pointer(event, svg.node())
                 );
-                // Start Draw Pie Chart when click on a state
+/**** Start Draw Pie Chart when click on a state ****/
                 const stateName = d.properties.name;
                 let data = {};
                 if (choice === "race") {
@@ -177,10 +174,10 @@
                     console.error("Check data in piechart.js");
                     return;
                 }
-                // Set up pie chart dimensions
+/**** Set up pie chart dimensions ****/
                 const stateWidth = x1 - x0; // width bounding box
                 const stateHeight = y1 - y0; // height bounding box
-                const minRadius = 50; // min radius
+                const minRadius = 70; // min radius
                 const maxRadius = Math.min(stateWidth, stateHeight) * 0.3; // max radius is 30% of smaller dimension of bounding box
                 const radius = Math.min(maxRadius, minRadius); // choose smaller one, ensure pie chart fits well within bounding box
                 const pieWidth = 500;
@@ -245,9 +242,9 @@
                         .text(d => d.data.value.toLocaleString("en-US")));
 
                 const [cx, cy] = path.centroid(d);
-                // Đảm bảo pie chart không vượt ra ngoài bounding box
-                const offsetX = (stateWidth - pieWidth * (radius / (pieWidth / 2))) / 2; // Điều chỉnh ngang
-                const offsetY = (stateHeight - pieHeight * (radius / (pieWidth / 2))) / 2; // Điều chỉnh dọc
+/**** Compute offset to center the pie chart in the state's bounding box ****/
+                const offsetX = (stateWidth - pieWidth * (radius / (pieWidth / 2))) / 2; //Vertical offset
+                const offsetY = (stateHeight - pieHeight * (radius / (pieWidth / 2))) / 2; //Horizontal offset
                 g.append(() => pieSvg.node())
                     .attr("class", "pie-chart")
                     .attr("transform", `translate(${cx - offsetX}, ${cy - offsetY}) scale(${radius / (pieWidth / 2)})`);
