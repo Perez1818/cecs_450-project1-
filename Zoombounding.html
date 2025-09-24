@@ -45,7 +45,7 @@
             const height = 2000;
 
             const zoom = d3.zoom()
-                .scaleExtent([1, 15])//limit zoom scale
+                .scaleExtent([1, 30])//limit zoom scale
                 .on("zoom", zoomed);
 
             const svg = d3.create("svg")
@@ -100,12 +100,6 @@
             const legend = svg.append("g")
                 .attr("transform", `translate(${(width - 150) / 2}, 20)`); // Center at top
 
-            // Define three key points for the legend
-            /*const legendPoints = [
-                { value: 0, color: colorScale(0), label: "0%" },
-                { value: 50, color: colorScale(50), label: "50%" },
-                { value: 100, color: colorScale(100), label: "100%" }
-            ];*/
             const legendPoints = [
                 { value: minValue, color: colorScale(minValue), label: "0%" },
                 { value: (minValue + maxValue) / 2, color: colorScale((minValue + maxValue) / 2), label: "50%" },
@@ -157,7 +151,6 @@
                 const [[x0, y0], [x1, y1]] = path.bounds(d);
                 event.stopPropagation();
                 states.transition().style("fill", d => colorScale(populationData[d.properties.name] || 0));
-                //d3.select(this).transition().style("fill", "white");
                 // Highlight selected state by changing another states color to Gray
                 //d3.select(this).transition().style("fill", "white");
                 states.filter(state => state !== d).transition().style("fill", "#444");
