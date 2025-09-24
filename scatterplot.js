@@ -48,7 +48,7 @@ async function getScatterData() {
                         { incomeType: "Households", value: parseFloat(row[householdIndex] || 0), obesity: obesity, state: row[stateIndex] },
                         { incomeType: "Families", value: parseFloat(row[familyIndex] || 0), obesity: obesity, state: row[stateIndex] },
                         { incomeType: "Married-couple", value: parseFloat(row[marriedIndex] || 0), obesity: obesity, state: row[stateIndex] },
-                        { incomeType: "Nonfamily", value: parseFloat(row[nonfamilyIndex] || 0), obesity: obesity, state: row[stateIndex] }
+                        { incomeType: "Nonfamily", value: parseFloat(row[nonfamilyIndex]) || 0, obesity: obesity, state: row[stateIndex] }
                     );
                 }
             }
