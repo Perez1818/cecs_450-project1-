@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <title>D3 Map Example</title>
+    <style>
+      #chart {
+        width: 1000 px;
+        height: 800 px;
+      }
+    </style>
   </head>
 
   <body>
@@ -93,6 +99,37 @@
               ) //change color scale based on population data ***testing purpose only***
               .on("click", clicked)
               .attr("d", path);
+            // Add tooltip on hover to show state name and obesity rate
+            states
+              .attr("fill", (d) =>
+                colorScale(populationData[d.properties.name] || 0)
+              )
+              .on("click", clicked)
+              .on("mouseover", function (event, d) {
+                const obesityRate = populationData[d.properties.name] || 0;
+                const tooltip = d3
+                  .select("body")
+                  .append("div")
+                  .attr("class", "tooltip")
+                  .style("position", "absolute")
+                  .style("background", "lightgray")
+                  .style("padding", "5px")
+                  .style("border-radius", "5px")
+                  .style("pointer-events", "none")
+                  .html(
+                    `<strong>${d.properties.name}</strong><br/>Obesity Rate: ${obesityRate}%`
+                  );
+
+                d3.select(this)
+                  .on("mousemove", function (event) {
+                    tooltip
+                      .style("left", event.pageX + 10 + "px")
+                      .style("top", event.pageY + 10 + "px");
+                  })
+                  .on("mouseout", function () {
+                    tooltip.remove();
+                  });
+              });
 
             states.append("title").text((d) => d.properties.name);
 
@@ -208,6 +245,7 @@
                     .translate(-(x0 + x1) / 2, -(y0 + y1) / 2),
                   d3.pointer(event, svg.node())
                 );
+
               /**** Start Draw Pie Chart when click on a state ****/
               const stateName = d.properties.name;
               let data = {};
@@ -362,7 +400,7 @@
               return;
             }
             const width = 500;
-            const height = 250;
+            const height = 200;
             const marginTop = 10;
             const marginRight = 20;
             const marginBottom = 20;
@@ -411,6 +449,7 @@
                   .attr("font-weight", "bold")
                   .attr("text-anchor", "end")
                   .text("Money Income (dollars)")
+                  .attr("font-size", `${height * 0.03}px`)
               );
 
             // Append the y-axis (obesity)
@@ -426,6 +465,7 @@
                   .attr("x", 4)
                   .attr("text-anchor", "start")
                   .attr("font-weight", "bold")
+                  .attr("font-size", `${height * 0.03}px`)
                   .text("Obesity (%)")
               );
 
@@ -444,7 +484,7 @@
                 (d) => `translate(${x(d["value"])},${y(d["obesity"])})`
               )
               .attr("fill", (d) => color(d["incomeType"]))
-              .attr("r", 3);
+              .attr("r", width * 0.005);
 
             // Add legend for income types
             const legend = svg
@@ -474,7 +514,7 @@
                 .append("text")
                 .attr("x", 20)
                 .attr("y", 5)
-                .attr("font-size", "12px")
+                .attr("font-size", `${height * 0.05}px`)
                 .text(type);
             });
 
@@ -488,7 +528,7 @@
           });
         }
       }
-    updateChart();
+      updateChart();
       document
         .getElementById("dataChoice")
         .addEventListener("change", function (e) {
