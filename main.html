@@ -399,8 +399,8 @@
               console.error("Check data in scatterplot.js");
               return;
             }
-            const width = 500;
-            const height = 200;
+            const width = window.innerWidth * 0.7;
+            const height = window.innerHeight * 0.5;
             const marginTop = 10;
             const marginRight = 20;
             const marginBottom = 20;
@@ -413,6 +413,7 @@
               .nice()
               .range([marginLeft, width - marginRight])
               .unknown(marginLeft);
+              
 
             // Create the vertical (y) scale for obesity
             const y = d3
