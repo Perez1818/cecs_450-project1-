@@ -12,6 +12,7 @@
   </head>
 
   <body>
+    <script> //set up the choice   </script>
     <div style="margin: 10px">
       <label for="dataChoice">Show data by: </label>
       <select id="dataChoice">
@@ -140,13 +141,6 @@
                 path(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
               );
 
-            /*g.selectAll("text")
-                .data(topojson.feature(us, us.objects.states).features)
-                .join("text")
-                .attr("x", d => d3.geoPath().centroid(d)[0]) 
-                .attr("y", d => d3.geoPath().centroid(d)[1])
-                .text(d => d.properties.name);*/
-
             /**** Adding simple legend for 0%, 50%, 100% ****/
             const legend = svg
               .append("g")
@@ -249,8 +243,6 @@
               let data = {};
               if (choice === "race") {
                 data = await getRaceData(stateName);
-              } else if (choice === "income") {
-                data = await getIncomeData(stateName);
               } else if (choice == "age") {
                 data = await getAgeData(stateName);
               }
@@ -391,6 +383,7 @@
             })
             .catch((err) => console.error("fail to load topojson:", err));
         } else if (choice === "income") {
+          // create ScatterPlot
           async function createScatterPlot() {
             let data = await getScatterData();
             if (!data || !data.length) {
@@ -489,6 +482,7 @@
             // Add tooltip on hover to show state name, income type, money income and obesity rate
             dot
               .on("mouseover", function (event, d) {
+                d3.select(this).attr("fill", "red");
                 const tooltip = d3
                   .select("body")
                   .append("div")
@@ -509,6 +503,7 @@
                       .style("top", event.pageY + 10 + "px");
                   })
                   .on("mouseout", function () {
+                    d3.select(this).attr("fill", (d) => color(d["incomeType"]));
                     tooltip.remove();
                   });
               })
