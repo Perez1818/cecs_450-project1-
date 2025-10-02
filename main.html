@@ -3,16 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <title>D3 Map Example</title>
-    <style>
-      #chart {
-        width: 1000 px;
-        height: 800 px;
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
-    <script> //set up the choice   </script>
+    <script>
+      //set up the choice
+    </script>
     <div style="margin: 10px">
       <label for="dataChoice">Show data by: </label>
       <select id="dataChoice">
@@ -21,8 +18,6 @@
         <option value="income">Income</option>
       </select>
     </div>
-    <div id="chart"></div>
-
     <div id="chart"></div>
     <script src="/library/d3.v7.min.js"></script>
     <script src="/library/topojson.js"></script>
@@ -59,8 +54,8 @@
         clearChart();
         if (choice === "race" || choice == "age") {
           function Chart(us) {
-            const width = 2000;
-            const height = 2000;
+            const width = window.innerWidth * 0.5;
+            const height = window.innerHeight;
 
             const zoom = d3
               .zoom()
@@ -144,7 +139,7 @@
             /**** Adding simple legend for 0%, 50%, 100% ****/
             const legend = svg
               .append("g")
-              .attr("transform", `translate(${(width - 150) / 2}, 20)`); // Center at top
+              .attr("transform", `translate(${width / 3}, 20)`); // Center at top
 
             const legendPoints = [
               { value: minValue, color: colorScale(minValue), label: "0%" },
@@ -186,7 +181,7 @@
               .style("font-size", "14px")
               .text("Obesity Rate (%)");
 
-            svg.call(zoom);
+            /*svg.call(zoom);*/
 
             function reset() {
               //states.transition().style("fill", null);
@@ -208,6 +203,7 @@
 
             async function clicked(event, d) {
               g.selectAll(".pie-chart").remove();
+              d3.select(".popup").remove();
               const [[x0, y0], [x1, y1]] = path.bounds(d);
               event.stopPropagation();
               states
@@ -221,7 +217,9 @@
                 .filter((state) => state !== d)
                 .transition()
                 .style("fill", "#444");
-              svg
+
+              //Cancle zoom to bounding box
+              /*svg
                 .transition()
                 .duration(750)
                 .call(
@@ -236,7 +234,7 @@
                     )
                     .translate(-(x0 + x1) / 2, -(y0 + y1) / 1.78), //change 2 to 1.78 to adjust position of zoomed state
                   d3.pointer(event, svg.node())
-                );
+                );*/
 
               /**** Start Draw Pie Chart when click on a state ****/
               const stateName = d.properties.name;
@@ -251,14 +249,11 @@
                 console.error("Check data in piechart.js");
                 return;
               }
+
               /**** Set up pie chart dimensions ****/
-              const stateWidth = x1 - x0; // width bounding box
-              const stateHeight = y1 - y0; // height bounding box
-              const minRadius = 70; // min radius
-              const maxRadius = Math.min(stateWidth, stateHeight) * 0.3; // max radius is 30% of smaller dimension of bounding box
-              const radius = Math.min(maxRadius, minRadius); // choose smaller one, ensure pie chart fits well within bounding box
-              const pieWidth = 500;
-              const pieHeight = Math.min(pieWidth, 500);
+              const pieWidth = window.innerWidth * 0.5;
+              const pieHeight = window.innerHeight;
+              const radius = Math.min(pieWidth, pieHeight) / 2 - 20; // radius of the pie chart
 
               // Create the color scale.
               const color = d3
@@ -307,7 +302,7 @@
                 ])
                 .attr(
                   "style",
-                  "max-width: 100%; height: auto; font: 10px sans-serif;"
+                  "max-width: 100%; height: 100%; font: ${pieWidth * 0.2}px sans-serif;"
                 );
 
               // Add a sector path for each value.
@@ -350,21 +345,25 @@
                     .text((d) => d.data.value.toLocaleString("en-US"))
                 );
 
-              const [cx, cy] = path.centroid(d);
-              /**** Compute offset to center the pie chart in the state's bounding box ****/
-              const offsetX =
-                (stateWidth - pieWidth * (radius / (pieWidth / 2))) / 2; //Vertical offset
-              const offsetY =
-                (stateHeight - pieHeight * (radius / (pieWidth / 2))) / 2; //Horizontal offset
-              g.append(() => pieSvg.node())
-                .attr("class", "pie-chart")
-                .attr(
-                  "transform",
-                  `translate(${cx - offsetX}, ${cy - offsetY}) scale(${
-                    radius / (pieWidth / 2)
-                  })`
-                );
+              // Create a popup div to hold the pie chart
+              const popup = d3
+                .select("body")
+                .append("div")
+                .attr("class", "popup active")
+              //PopUp title and close button
+              popup
+                .append("div")                
+                .text(`Pie Chart for ${stateName}`)
+                .append("span")
+                .text("✖")
+                .on("click", () => popup.remove());
+
+              //Append pie chart to the popup
+              popup
+                .append(() => pieSvg.node())
+                ;
             }
+            //set pôpup position for pop up
 
             function zoomed(event) {
               const { transform } = event;
@@ -404,7 +403,6 @@
               .nice()
               .range([marginLeft, width - marginRight])
               .unknown(marginLeft);
-              
 
             // Create the vertical (y) scale for obesity
             const y = d3
@@ -457,7 +455,7 @@
                   .attr("x", 4)
                   .attr("text-anchor", "start")
                   .attr("font-weight", "bold")
-                  .attr("font-size", `${height * 0.03}px`)
+                  .attr("font-size", `${height * 0.3}px`)
                   .text("Obesity (%)")
               );
 
@@ -478,37 +476,37 @@
               .attr("fill", (d) => color(d["incomeType"]))
               .attr("r", width * 0.005);
 
-
             // Add tooltip on hover to show state name, income type, money income and obesity rate
-            dot
-              .on("mouseover", function (event, d) {
-                d3.select(this).attr("fill", "red");
-                const tooltip = d3
-                  .select("body")
-                  .append("div")
-                  .attr("class", "tooltip")
-                  .style("position", "absolute")
-                  .style("background", "lightgray")
-                  .style("padding", "5px")
-                  .style("border-radius", "5px")
-                  .style("pointer-events", "none")
-                  .html(
-                    `<strong>${d["state"]}</strong><br/>Income Type: ${d["incomeType"]}<br/>Money Income: $${d["value"].toLocaleString()}<br/>Obesity Rate: ${d["obesity"]}%`
-                  );
+            dot.on("mouseover", function (event, d) {
+              d3.select(this).attr("fill", "red");
+              const tooltip = d3
+                .select("body")
+                .append("div")
+                .attr("class", "tooltip")
+                .style("position", "absolute")
+                .style("background", "lightgray")
+                .style("padding", "5px")
+                .style("border-radius", "5px")
+                .style("pointer-events", "none")
+                .html(
+                  `<strong>${d["state"]}</strong><br/>Income Type: ${
+                    d["incomeType"]
+                  }<br/>Money Income: $${d[
+                    "value"
+                  ].toLocaleString()}<br/>Obesity Rate: ${d["obesity"]}%`
+                );
 
-                d3.select(this)
-                  .on("mousemove", function (event) {
-                    tooltip
-                      .style("left", event.pageX + 10 + "px")
-                      .style("top", event.pageY + 10 + "px");
-                  })
-                  .on("mouseout", function () {
-                    d3.select(this).attr("fill", (d) => color(d["incomeType"]));
-                    tooltip.remove();
-                  });
-              })
-              ;
-            
+              d3.select(this)
+                .on("mousemove", function (event) {
+                  tooltip
+                    .style("left", event.pageX + 10 + "px")
+                    .style("top", event.pageY + 10 + "px");
+                })
+                .on("mouseout", function () {
+                  d3.select(this).attr("fill", (d) => color(d["incomeType"]));
+                  tooltip.remove();
+                });
+            });
 
             // Add legend for income types
             const legend = svg

@@ -1,0 +1,66 @@
+/* popup */
+.popup {
+    position: fixed;
+    top: 10px;
+    right: 0;
+    width: 50vw;
+    height: 100vh;
+    background: white;
+    border: 1px solid #3b2c2c;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    z-index: 10000;
+    display: none;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    cursor: pointer;
+    float: right;
+    text-size-adjust: auto;
+
+}
+
+.popup.active {
+    display: block;
+}
+
+/* close button */
+.close-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #110b0b;
+}
+
+/*chart */
+#chart {
+    z-index: 1000;
+    position: fixed;
+    top: 10px;
+    left: 0;
+    width: 50vw;
+    height: 100vh;
+}
+
+#dataChoice {
+  position: relative;
+  z-index: 2000;
+}
+
+/*tooltip*/
+.tooltip {
+    position: absolute;
+    text-align: center;
+    width: auto;
+    height: auto;
+    padding: 5px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+    opacity: 0.9;
+    z-index: 1000;
+}
