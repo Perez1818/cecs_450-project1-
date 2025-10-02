@@ -349,19 +349,17 @@
               const popup = d3
                 .select("body")
                 .append("div")
-                .attr("class", "popup active")
+                .attr("class", "popup active");
               //PopUp title and close button
               popup
-                .append("div")                
+                .append("div")
                 .text(`Pie Chart for ${stateName}`)
                 .append("span")
                 .text("✖")
                 .on("click", () => popup.remove());
 
               //Append pie chart to the popup
-              popup
-                .append(() => pieSvg.node())
-                ;
+              popup.append(() => pieSvg.node());
             }
             //set pôpup position for pop up
 
@@ -389,9 +387,9 @@
               console.error("Check data in scatterplot.js");
               return;
             }
-            const width = window.innerWidth * 0.7;
-            const height = window.innerHeight * 0.5;
-            const marginTop = 10;
+            const width = window.innerWidth * 0.9;
+            const height = window.innerHeight * 0.9;
+            const marginTop = 40;
             const marginRight = 20;
             const marginBottom = 20;
             const marginLeft = 30;
@@ -430,16 +428,18 @@
               .attr("transform", `translate(0,${height - marginBottom})`)
               .call(d3.axisBottom(x))
               .call((g) => g.select(".domain").remove())
-              .call((g) =>
-                g
-                  .append("text")
-                  .attr("x", width - marginRight)
-                  .attr("y", -4)
-                  .attr("fill", "#000")
-                  .attr("font-weight", "bold")
-                  .attr("text-anchor", "end")
-                  .text("Money Income (dollars)")
-                  .attr("font-size", `${height * 0.03}px`)
+              .call((g) => g.selectAll(".tick text").style("font-size", "20px"))
+              .call(
+                (g) =>
+                  g
+                    .append("text")
+                    .attr("x", width - marginRight)
+                    .attr("y", -4)
+                    .attr("fill", "#000")
+                    .attr("font-weight", "bold")
+                    .attr("text-anchor", "end")
+                    .text("Money Income (dollars)")
+                    .attr("font-size", "20px") // label
               );
 
             // Append the y-axis (obesity)
@@ -448,6 +448,7 @@
               .attr("transform", `translate(${marginLeft},0)`)
               .call(d3.axisLeft(y))
               .call((g) => g.select(".domain").remove())
+              .call((g) => g.selectAll(".tick text").style("font-size", "20px"))
               .call((g) =>
                 g
                   .select(".tick:last-of-type text")
@@ -455,7 +456,7 @@
                   .attr("x", 4)
                   .attr("text-anchor", "start")
                   .attr("font-weight", "bold")
-                  .attr("font-size", `${height * 0.3}px`)
+                  .attr("font-size", "20px") // label lớn hơn
                   .text("Obesity (%)")
               );
 
@@ -535,8 +536,8 @@
               legendRow
                 .append("text")
                 .attr("x", 20)
-                .attr("y", 5)
-                .attr("font-size", `${height * 0.05}px`)
+                .attr("y", 10)
+                .attr("font-size", `${height * 0.03}px`)
                 .text(type);
             });
 
