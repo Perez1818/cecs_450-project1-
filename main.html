@@ -487,6 +487,42 @@
               .attr("fill", (d) => color(d["incomeType"]))
               .attr("r", width * 0.005);
 
+
+            // Add tooltip on hover to show state name, income type, money income and obesity rate
+            dot
+              .on("mouseover", function (event, d) {
+                const tooltip = d3
+                  .select("body")
+                  .append("div")
+                  .attr("class", "tooltip")
+                  .style("position", "absolute")
+                  .style("background", "lightgray")
+                  .style("padding", "5px")
+                  .style("border-radius", "5px")
+                  .style("pointer-events", "none")
+                  .html(
+                    `<strong>${d["state"]}</strong><br/>Income Type: ${d["incomeType"]}<br/>Money Income: $${d["value"].toLocaleString()}<br/>Obesity Rate: ${d["obesity"]}%`
+                  );
+
+                d3.select(this)
+                  .on("mousemove", function (event) {
+                    tooltip
+                      .style("left", event.pageX + 10 + "px")
+                      .style("top", event.pageY + 10 + "px");
+                  })
+                  .on("mouseout", function () {
+                    tooltip.remove();
+                  });
+              })
+              .append("title")
+              .text(
+                (d) =>
+                  `${d["state"]}\nIncome Type: ${d["incomeType"]}\nMoney Income: $${d[
+                    "value"
+                  ].toLocaleString()}\nObesity Rate: ${d["obesity"]}%`
+              );
+            
+
             // Add legend for income types
             const legend = svg
               .append("g")
