@@ -135,7 +135,7 @@
                 "d",
                 path(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
               );
-
+            svg.call(zoom);
             /**** Adding simple legend for 0%, 50%, 100% ****/
             const legend = svg
               .append("g")
@@ -218,8 +218,8 @@
                 .transition()
                 .style("fill", "#444");
 
-              //Cancle zoom to bounding box
-              /*svg
+              // zoom to bounding box
+              svg
                 .transition()
                 .duration(750)
                 .call(
@@ -228,13 +228,13 @@
                     .translate(width / 2, height / 2)
                     .scale(
                       Math.min(
-                        15,
-                        2.5 / Math.max((x1 - x0) / width, (y1 - y0) / height)
+                        5,
+                        0.5 / Math.max((x1 - x0) / width, (y1 - y0) / height)
                       )
                     )
-                    .translate(-(x0 + x1) / 2, -(y0 + y1) / 1.78), //change 2 to 1.78 to adjust position of zoomed state
+                    .translate(-(x0 + x1) / 2, -(y0 + y1) / 2), //change 1.78 to 2 to adjust position of zoomed state
                   d3.pointer(event, svg.node())
-                );*/
+                );
 
               /**** Start Draw Pie Chart when click on a state ****/
               const stateName = d.properties.name;
