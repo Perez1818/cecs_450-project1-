@@ -89,7 +89,7 @@
             console.log(populationData);
             const states = g
               .append("g")
-              .attr("fill", "#444") //default color gray
+              .attr("fill", "#0000") //default color white
               .attr("cursor", "pointer")
               .selectAll("path")
               .data(topojson.feature(us, us.objects.states).features)
@@ -130,8 +130,6 @@
                     tooltip.remove();
                   });
               });
-
-            states.append("title").text((d) => d.properties.name);
 
             g.append("path")
               .attr("fill", "none")
@@ -242,7 +240,7 @@
                         2.5 / Math.max((x1 - x0) / width, (y1 - y0) / height)
                       )
                     )
-                    .translate(-(x0 + x1) / 2, -(y0 + y1) / 2),
+                    .translate(-(x0 + x1) / 2, -(y0 + y1) / 1.78), //change 2 to 1.78 to adjust position of zoomed state
                   d3.pointer(event, svg.node())
                 );
 
@@ -514,13 +512,7 @@
                     tooltip.remove();
                   });
               })
-              .append("title")
-              .text(
-                (d) =>
-                  `${d["state"]}\nIncome Type: ${d["incomeType"]}\nMoney Income: $${d[
-                    "value"
-                  ].toLocaleString()}\nObesity Rate: ${d["obesity"]}%`
-              );
+              ;
             
 
             // Add legend for income types
