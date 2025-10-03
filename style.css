@@ -1,26 +1,30 @@
 /* popup */
 .popup {
-    position: fixed;
-    top: 10px;
-    right: 0;
-    width: 50vw;
-    height: 100vh;
-    background: white;
-    border: 1px solid #3b2c2c;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    padding: 10px;
-    z-index: 10000;
-    display: none;
-    border-radius: 5px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    cursor: pointer;
-    float: right;
-    text-size-adjust: auto;
-
+  position: fixed;
+  width: 50%;    
+  right: 0; 
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+  padding: 10px;
+  z-index: 1000;
+  overflow: auto;
 }
 
-.popup.active {
+.popup1 {
+  top: 8px;         
+  height: 47.5%;     
+}
+
+.popup2 {
+  bottom: 0;        
+  height: 47%;    
+}
+
+.popup.active{
+    display: block;
+}
+.popup2.active {
     display: block;
 }
 

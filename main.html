@@ -13,8 +13,7 @@
     <div style="margin: 10px">
       <label for="dataChoice">Show data by: </label>
       <select id="dataChoice">
-        <option value="race">Race</option>
-        <option value="age">Age</option>
+        <option value="race and Age">race and Age</option>
         <option value="income">Income</option>
       </select>
     </div>
@@ -24,7 +23,7 @@
     <script src="/piechart.js"></script>
     <script src="/scatterplot.js"></script>
     <script type="module">
-      let choice = "race"; // default
+      let choice = "race and Age"; // default
       document
         .getElementById("dataChoice")
         .addEventListener("change", function (e) {
@@ -52,7 +51,7 @@
       }
       async function updateChart() {
         clearChart();
-        if (choice === "race" || choice == "age") {
+        if (choice === "race and Age") {
           function Chart(us) {
             const width = window.innerWidth * 0.5;
             const height = window.innerHeight;
@@ -199,11 +198,12 @@
                   d3.zoomTransform(svg.node()).invert([width / 2, height / 2])
                 );
               g.selectAll(".pie-chart").remove(); // Remove pie chart when resetting the zoom
+              d3.selectAll(".popup").remove();
             }
 
             async function clicked(event, d) {
               g.selectAll(".pie-chart").remove();
-              d3.select(".popup").remove();
+              d3.selectAll(".popup").remove();
               const [[x0, y0], [x1, y1]] = path.bounds(d);
               event.stopPropagation();
               states
@@ -239,17 +239,16 @@
               /**** Start Draw Pie Chart when click on a state ****/
               const stateName = d.properties.name;
               let data = {};
-              if (choice === "race") {
+              let data2 = {};
+              if (choice === "race and Age") {
                 data = await getRaceData(stateName);
-              } else if (choice == "age") {
-                data = await getAgeData(stateName);
-              }
+                data2 = await getAgeData(stateName);
 
               if (!data || !data.length) {
                 console.error("Check data in piechart.js");
                 return;
               }
-
+              
               /**** Set up pie chart dimensions ****/
               const pieWidth = window.innerWidth * 0.5;
               const pieHeight = window.innerHeight;
@@ -346,23 +345,146 @@
                 );
 
               // Create a popup div to hold the pie chart
-              const popup = d3
+              const popup1 = d3
                 .select("body")
                 .append("div")
-                .attr("class", "popup active");
+                .attr("class", "popup popup1 active");
               //PopUp title and close button
-              popup
+              popup1
                 .append("div")
-                .text(`Pie Chart for ${stateName}`)
+                .text(`Pie Chart (Race) for ${stateName}`)
                 .append("span")
                 .text("✖")
-                .on("click", () => popup.remove());
+                .on("click", () => popup1.remove());
 
               //Append pie chart to the popup
-              popup.append(() => pieSvg.node());
+              popup1.append(() => pieSvg.node());
             }
-            //set pôpup position for pop up
 
+
+
+
+
+            //***pop up 2 for race***//
+            if (!data2 || !data2.length) {
+                console.error("Check data in piechart.js");
+                return;
+              }
+              
+              /**** Set up pie chart dimensions ****/
+              const pieWidth = window.innerWidth * 0.5;
+              const pieHeight = window.innerHeight;
+              const radius = Math.min(pieWidth, pieHeight) / 2 - 20; // radius of the pie chart
+
+              // Create the color scale.
+              const color = d3
+                .scaleOrdinal()
+                .domain(data2.map((d) => d.name))
+                .range(
+                  d3
+                    .quantize(
+                      (t) => d3.interpolateSpectral(t * 0.5 + 0.25), // Todo change color scheme here
+                      data2.length
+                    )
+                    .reverse()
+                );
+
+              // Create the pie layout and arc generator.
+              const pie = d3
+                .pie()
+                .sort(null)
+                .value((d) => d.value);
+
+              const arc = d3
+                .arc()
+                .innerRadius(0)
+                .outerRadius(Math.min(pieWidth, pieHeight) / 2 - 1);
+
+              const labelRadius = arc.outerRadius()() * 0.8;
+
+              // A separate arc generator for labels.
+              const arcLabel = d3
+                .arc()
+                .innerRadius(labelRadius)
+                .outerRadius(labelRadius);
+
+              const arcs = pie(data2);
+
+              // Create the SVG container.
+              const pieSvg = d3
+                .create("svg")
+                .attr("width", pieWidth)
+                .attr("height", pieHeight)
+                .attr("viewBox", [
+                  -pieWidth / 2,
+                  -pieHeight / 2,
+                  pieWidth,
+                  pieHeight,
+                ])
+                .attr(
+                  "style",
+                  "max-width: 100%; height: 100%; font: ${pieWidth * 0.2}px sans-serif;"
+                );
+
+              // Add a sector path for each value.
+              pieSvg
+                .append("g")
+                .attr("stroke", "white")
+                .selectAll()
+                .data(arcs)
+                .join("path")
+                .attr("fill", (d) => color(d.data.name))
+                .attr("d", arc)
+                .append("title")
+                .text(
+                  (d) =>
+                    `${d.data.name}: ${d.data.value.toLocaleString("en-US")}`
+                );
+
+              // Create a new arc generator to place a label close to the edge.
+              pieSvg
+                .append("g")
+                .attr("text-anchor", "middle")
+                .selectAll()
+                .data(arcs)
+                .join("text")
+                .attr("transform", (d) => `translate(${arcLabel.centroid(d)})`)
+                .call((text) =>
+                  text
+                    .append("tspan")
+                    .attr("y", "-0.4em")
+                    .attr("font-weight", "bold")
+                    .text((d) => d.data.name)
+                )
+                .call((text) =>
+                  text
+                    .filter((d) => d.endAngle - d.startAngle > 0.25)
+                    .append("tspan")
+                    .attr("x", 0)
+                    .attr("y", "0.7em")
+                    .attr("fill-opacity", 0.7)
+                    .text((d) => d.data.value.toLocaleString("en-US"))
+                );
+
+              // Create a popup div to hold the pie chart
+              const popup2 = d3
+                .select("body")
+                .append("div")
+                .attr("class", "popup popup2 active");
+              //PopUp title and close button
+              popup2
+                .append("div")
+                .text(`Pie Chart (Age) for ${stateName}`)
+                .append("span")
+                .text("✖")
+                .on("click", () => popup2.remove());
+              //close all popup when click on other
+
+              //Append pie chart to the popup
+              popup2.append(() => pieSvg.node());
+            }
+
+            
             function zoomed(event) {
               const { transform } = event;
               g.attr("transform", transform);
@@ -381,6 +503,7 @@
             .catch((err) => console.error("fail to load topojson:", err));
         } else if (choice === "income") {
           // create ScatterPlot
+          d3.selectAll(".popup").remove();
           async function createScatterPlot() {
             let data = await getScatterData();
             if (!data || !data.length) {
