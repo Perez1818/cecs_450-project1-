@@ -1,1 +1,0 @@
-row[nonfamilyIndex] || 0
