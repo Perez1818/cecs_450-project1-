@@ -1,4 +1,8 @@
 // piechart.js
+// reference to use asynchonous to fetch data in csv file
+// https://medium.com/@ryan_forrester_/read-csv-files-in-javascript-how-to-guide-8d0ac6df082a
+
+
 function getRaceData(stateName) {
     return fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vSHuZSymB6pmsvDrPTHMEE-5PLXUURV8te3iUzQLAo0AXllfhgoSSw7-WlIUi7ZesKn6JnrmVHd2a2F/pub?output=csv')
         .then(response => {

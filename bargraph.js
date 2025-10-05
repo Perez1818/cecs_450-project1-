@@ -1,3 +1,4 @@
+// bargraph.js is using same reference from piechart.js
 
 let regionData = {};
 
