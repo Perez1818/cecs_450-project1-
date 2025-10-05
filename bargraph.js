@@ -1,11 +1,13 @@
-// bargraph.js is using same reference from piechart.js
+// bargraph.js is using reference from 
+// https://medium.com/@ryan_forrester_/read-csv-files-in-javascript-how-to-guide-8d0ac6df082a
+// to use asynchonous function to fetch data in csv file
 
 let regionData = {};
 
 // Fetch bar data from the CSV
 async function fetchBarData() {
     try {
-        const response = await fetch('https://docs.google.com/spreadsheets/d/1zZrav-m7Iiusnop32WciLK8b4uKGTyTwUM-wvTPTVZI/export?format=csv&gid=1025716626');
+        const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vSHuZSymB6pmsvDrPTHMEE-5PLXUURV8te3iUzQLAo0AXllfhgoSSw7-WlIUi7ZesKn6JnrmVHd2a2F/pub?output=csv');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -15,11 +17,11 @@ async function fetchBarData() {
 
         // Find column indices
         const stateIndex = headers.indexOf('State');
+        const incomeIndex = headers.indexOf('Median household income');
         const regionIndex = headers.indexOf('Region');
-        const obesityIndex = headers.indexOf('1st Obesity %');
-        const incomeIndex = headers.indexOf('1st Income');
+        const obesityIndex = headers.indexOf('Obesity %');
 
-        // Group by Region and aggregate averages
+        // Group by Region and total up
         regionData = {};
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
@@ -65,4 +67,3 @@ async function getBarData() {
         income: +vals.income
     }));
 }
-

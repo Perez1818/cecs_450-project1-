@@ -7,7 +7,7 @@
   </head>
 
   <body>
-    <div style="margin: 10px">
+    <div class="control-panel">
       <label for="dataChoice">Show data by: </label>
       <select id="dataChoice">
         <option value="race and Age">Race and Age</option>
@@ -17,24 +17,21 @@
     <div id="chart"></div>
     <script src="/library/d3.v7.min.js"></script>
     <script src="/library/topojson.js"></script>
-    <script src="/piechart.js"></script>
     <script src="/bargraph.js"></script>
     <script type="module">
       let choice = "race and Age"; // default
       //References:
       //- Use Zoom to bounding box: https://observablehq.com/@d3/zoom-to-bounding-box
-      //- Pie chart: https://observablehq.com/@d3/pie-chart
       //- features geometries of all states https://cdn.jsdelivr.net/npm/us-atlas@3/counties-albers-10m.json
       //- topology: topojson.js: https://unpkg.com/topojson@3
       //- html: how to use d3 code: https://d3js.org/getting-started
-      //- Combine Zoomed map with pie chart: ChatGPT
       //- Bargraph with tooltips: https://observablehq.com/@d3/bar-chart/2
-      //- Change Color Map: ChatGPT
       //- Tool: Visual Studio Code
-      //- Data source: Obesity data from CDC 2019: https://www.cdc.gov/obesity/data/prevalence-maps.html
+      //- Data source: Obesity data from the 2015 CDC BRFSS Survey: https://catalog.data.gov/dataset/national-obesity-by-state-d765a
 
       //go live with ip: http://localhost:8080/main.html
       //using python command to run on port 8080: python3 -m http.server 8080 
+
       //Pan and zoom, or click to zoom into a particular state using zoom.transform transitions.The bounding box is computed using path.bounds.
       import { stateAndObe } from "./zoombounding.js";
       function clearChart() {
@@ -76,7 +73,6 @@
               .scaleLinear()
               .domain([minValue, maxValue])
               .range(["#FFFFFf", "#800026"]);
-            console.log(populationData);
             const states = g
               .append("g")
               .attr("fill", "#0000") //default color white
@@ -86,7 +82,7 @@
               .join("path")
               .attr("fill", (d) =>
                 colorScale(populationData[d.properties.name] || 0)
-              ) //change color scale based on population data ***testing purpose only***
+              ) //change color scale based on population data 
               .on("click", clicked)
               .attr("d", path);
 
@@ -97,11 +93,6 @@
                 .select("body")
                 .append("div")
                 .attr("class", "tooltip")
-                .style("position", "absolute")
-                .style("background", "lightgray")
-                .style("padding", "5px")
-                .style("border-radius", "5px")
-                .style("pointer-events", "none")
                 .html(
                   `<strong>${d.properties.name}</strong><br/>Obesity Rate: ${obesityRate}%`
                 );
@@ -242,238 +233,223 @@
                   d3.zoomTransform(svg.node()).invert([width / 2, height / 2]) // Center the state
                 );
 
-              /**** Start Draw Pie Chart when click on a state ****/
               const stateName = d.properties.name;
-              let data = {};
-              let data2 = {};
+
               if (choice === "race and Age") {
-                data = await getRaceData(stateName);
-                data2 = await getAgeData(stateName);
-
-                if (!data || !data.length) {
-                  console.error("Check data in piechart.js");
-                  return;
-                }
-
-                /**** Set up pie chart dimensions ****/
-                const pieWidth = window.innerWidth * 0.5;
-                const pieHeight = window.innerHeight;
-                const radius = Math.min(pieWidth, pieHeight) / 2 - 20; // radius of the pie chart
-
-                // Create the color for piechart.
-                const color = d3
-                  .scaleOrdinal()
-                  .domain(data.map((d) => d.name))
-                  .range(["#808080", "#F5F5DC", "#8B4513"]); // Gray, Beige, Brown
-
-                // Create the pie layout and arc generator.
-                const pie = d3
-                  .pie()
-                  .sort(null)
-                  .value((d) => d.value);
-
-                const arc = d3
-                  .arc()
-                  .innerRadius(0)
-                  .outerRadius(Math.min(pieWidth, pieHeight) / 2 - 1);
-
-                const labelRadius = arc.outerRadius()() * 0.8;
-
-                // A separate arc generator for labels.
-                const arcLabel = d3
-                  .arc()
-                  .innerRadius(labelRadius)
-                  .outerRadius(labelRadius);
-
-                const arcs = pie(data);
-
-                // Create the SVG container.
-                const pieSvg = d3
-                  .create("svg")
-                  .attr("width", pieWidth)
-                  .attr("height", pieHeight)
-                  .attr("viewBox", [
-                    -pieWidth / 2,
-                    -pieHeight / 2,
-                    pieWidth,
-                    pieHeight,
-                  ])
-                  .attr(
-                    "style",
-                    `max-width: 100%; height: 100%; font: ${
-                      pieWidth * 0.03
-                    }px sans-serif;`
-                  );
-
-                // Add a sector path for each value.
-                pieSvg
-                  .append("g")
-                  .attr("stroke", "white")
-                  .selectAll()
-                  .data(arcs)
-                  .join("path")
-                  .attr("fill", (d) => color(d.data.name))
-                  .attr("d", arc)
-                  .append("title")
-                  .text(
-                    (d) =>
-                      `${d.data.name}: ${d.data.value.toLocaleString("en-US")}`
-                  );
-
-                // Create a new arc generator to place a label close to the edge.
-                pieSvg
-                  .append("g")
-                  .attr("text-anchor", "middle")
-                  .selectAll()
-                  .data(arcs)
-                  .join("text")
-                  .attr(
-                    "transform",
-                    (d) => `translate(${arcLabel.centroid(d)})`
-                  )
-                  .call((text) =>
-                    text
-                      .append("tspan")
-                      .attr("y", "-0.4em")
-                      .attr("font-weight", "bold")
-                      .text((d) => d.data.name)
-                  )
-                  .call((text) =>
-                    text
-                      .filter((d) => d.endAngle - d.startAngle > 0.25)
-                      .append("tspan")
-                      .attr("x", 0)
-                      .attr("y", "0.7em")
-                      .attr("fill-opacity", 0.7)
-                      .text((d) => d.data.value.toLocaleString("en-US"))
-                  );
-
-                // Create a popup div to hold the pie chart
-                const popup1 = d3
-                  .select("body")
-                  .append("div")
-                  .attr("class", "popup popup1 active");
-                //PopUp title and close button
-                popup1
-                  .append("div")
-                  .text(`Pie Chart (Race) for ${stateName}`)
-                  .append("span")
-                  .text("✖")
-                  .on("click", () => popup1.remove());
-
-                //Append pie chart to the popup
-                popup1.append(() => pieSvg.node());
-
-                //***pop up 2 for age***//
-                if (!data2 || !data2.length) {
-                  console.error("Check data in piechart.js");
-                  return;
-                }
-
-                /**** Set up pie chart dimensions ****/
-                const pieWidth2 = window.innerWidth * 0.5;
-                const pieHeight2 = window.innerHeight;
-                const radius2 = Math.min(pieWidth2, pieHeight2) / 2 - 20; // radius of the pie chart
-
-
-                // Create the pie layout and arc generator.
-                const pie2 = d3
-                  .pie()
-                  .sort(null)
-                  .value((d) => d.value);
-
-                const arc2 = d3
-                  .arc()
-                  .innerRadius(0)
-                  .outerRadius(Math.min(pieWidth2, pieHeight2) / 2 - 1);
-
-                const labelRadius2 = arc2.outerRadius()() * 0.8;
-
-                // A separate arc generator for labels.
-                const arcLabel2 = d3
-                  .arc()
-                  .innerRadius(labelRadius2)
-                  .outerRadius(labelRadius2);
-
-                const arcs2 = pie2(data2);
-
-                // Create the SVG container.
-                const pieSvg2 = d3
-                  .create("svg")
-                  .attr("width", pieWidth2)
-                  .attr("height", pieHeight2)
-                  .attr("viewBox", [
-                    -pieWidth2 / 2,
-                    -pieHeight2 / 2,
-                    pieWidth2,
-                    pieHeight2,
-                  ])
-                  .attr(
-                    "style",
-                    `max-width: 100%; height: 100%; font: ${
-                      pieWidth2 * 0.03
-                    }px sans-serif;`
-                  );
-
-                // Add a sector path for each value.
-                pieSvg2
-                  .append("g")
-                  .attr("stroke", "white")
-                  .selectAll()
-                  .data(arcs2)
-                  .join("path")
-                  .attr("fill", (d) => color(d.data.name))
-                  .attr("d", arc2)
-                  .append("title")
-                  .text(
-                    (d) =>
-                      `${d.data.name}: ${d.data.value.toLocaleString("en-US")}`
-                  );
-
-                // Create a new arc generator to place a label close to the edge.
-                pieSvg2
-                  .append("g")
-                  .attr("text-anchor", "middle")
-                  .selectAll()
-                  .data(arcs2)
-                  .join("text")
-                  .attr(
-                    "transform",
-                    (d) => `translate(${arcLabel2.centroid(d)})`
-                  )
-                  .call((text) =>
-                    text
-                      .append("tspan")
-                      .attr("y", "-0.4em")
-                      .attr("font-weight", "bold")
-                      .text((d) => d.data.name)
-                  )
-                  .call((text) =>
-                    text
-                      .filter((d) => d.endAngle - d.startAngle > 0.25)
-                      .append("tspan")
-                      .attr("x", 0)
-                      .attr("y", "0.7em")
-                      .attr("fill-opacity", 0.7)
-                      .text((d) => d.data.value.toLocaleString("en-US"))
-                  );
-
-                // Create a popup div to hold the pie chart
+                //***--------------pop up for age+race with heatmap---------------***//
+                // Create a popup div to hold the pie chart and heatmap
                 const popup2 = d3
-                  .select("body")
-                  .append("div")
-                  .attr("class", "popup popup2 active");
-                //PopUp title and close button
-                popup2
-                  .append("div")
-                  .text(`Pie Chart (Age) for ${stateName}`)
-                  .append("span")
-                  .text("✖")
-                  .on("click", () => popup2.remove());
-                //close all popup when click on other
+                .select("body")
+                .append("div")
+                .attr("class", "popup active");
 
-                //Append pie chart to the popup
-                popup2.append(() => pieSvg2.node());
+      // PopUp title and close button
+      const titleDiv = popup2.append("div").attr("class", "popup-title");
+      titleDiv.append("span").text(`Heatmap (Race & Age) for ${stateName}`);
+      titleDiv.append("span")
+        .attr("class", "close-btn")
+        .text("✖")
+        .on("click", () => popup2.remove());
+
+
+                // --- Heatmap Section --- //
+                const heatmapDiv = popup2
+                  .append("div")
+                  .attr("class", "heatmap-container");
+
+                // Controls for heatmap
+                const controlsDiv = heatmapDiv
+                  .append("div")
+                  .attr("id", "controls");
+                const stateSelect = controlsDiv
+                  .append("select")
+                  .attr("id", "stateSelect");
+
+                controlsDiv
+                  .append("label")
+                  .attr("for", "yearSlider")
+                  .text("Year:");
+                controlsDiv
+                  .append("input")
+                  .attr("type", "range")
+                  .attr("id", "yearSlider")
+                  .attr("min", 2013)
+                  .attr("max", 2023)
+                  .attr("step", 1)
+                  .attr("value", 2015);
+                controlsDiv.append("span").attr("id", "yearLabel").text("2015");
+                controlsDiv.append("button").attr("id", "playBtn").text("Play");
+                controlsDiv
+                  .append("button")
+                  .attr("id", "pauseBtn")
+                  .text("Pause");
+
+                const heatmapDivSVG = heatmapDiv
+                  .append("div")
+                  .attr("id", "heatmap");
+
+                const margin = { top: 20, right: 50, bottom: 100, left: 120 },
+                  width = 900 - margin.left - margin.right,
+                  height = 400 - margin.top - margin.bottom;
+
+                const svgHeatmap = d3
+                  .select("#heatmap")
+                  .append("svg")
+                  .attr("width", width + margin.left + margin.right)
+                  .attr("height", height + margin.top + margin.bottom)
+                  .append("g")
+                  .attr("transform", `translate(${margin.left},${margin.top})`);
+
+                let dataGlobal;
+                let playInterval;
+
+                d3.csv("Behavioral_Risk_Factor_Surveillance_System.csv")
+                  .then((data) => {
+                    data.forEach((d) => {
+                      d.Sample_Size = +d.Sample_Size.replace(/,/g, "");
+                      d.Data_value = +d.Data_value;
+                      d.Year = +d.Year;
+                    });
+                    dataGlobal = data;
+
+                    const states = [
+                      ...new Set(data.map((d) => d.Locationdesc)),
+                    ];
+                    states.forEach((s) =>
+                      stateSelect.append("option").text(s).attr("value", s)
+                    );
+
+                    const ages = [
+                      ...new Set(
+                        data
+                          .filter((d) => d.Topic === "Age")
+                          .map((d) => d.Response)
+                      ),
+                    ];
+                    const races = [
+                      ...new Set(
+                        data
+                          .filter(
+                            (d) => d.Break_Out_Category === "Race/Ethnicity"
+                          )
+                          .map((d) => d.Break_Out)
+                      ),
+                    ];
+
+                    const xScale = d3
+                      .scaleBand()
+                      .domain(races)
+                      .range([0, width])
+                      .padding(0.05);
+                    const yScale = d3
+                      .scaleBand()
+                      .domain(ages)
+                      .range([0, height])
+                      .padding(0.05);
+                    const colorScale = d3
+                      .scaleSequential()
+                      .interpolator(d3.interpolateBlues);
+
+                    // Axes
+                    svgHeatmap
+                      .append("g")
+                      .attr("transform", `translate(0,${height})`)
+                      .attr("class", "xAxis")
+                      .call(d3.axisBottom(xScale))
+                      .selectAll("text")
+                      .attr("transform", "rotate(-45)")
+                      .style("text-anchor", "end");
+                    svgHeatmap
+                      .append("g")
+                      .attr("class", "yAxis")
+                      .call(d3.axisLeft(yScale));
+
+                    function updateHeatmap(state, year) {
+                      const filtered = dataGlobal.filter(
+                        (d) =>
+                          d.Topic === "Age" &&
+                          d.Break_Out_Category === "Race/Ethnicity" &&
+                          d.Locationdesc === state &&
+                          d.Year === +year
+                      );
+
+                      colorScale.domain([
+                        0,
+                        d3.max(filtered, (d) => d.Data_value),
+                      ]);
+
+                      const cells = svgHeatmap
+                        .selectAll(".cell")
+                        .data(filtered, (d) => d.Response + d.Break_Out);
+
+                      cells
+                        .enter()
+                        .append("rect")
+                        .attr("class", "cell")
+                        .merge(cells)
+                        .transition()
+                        .duration(300)
+                        .attr("x", (d) => xScale(d.Break_Out))
+                        .attr("y", (d) => yScale(d.Response))
+                        .attr("width", xScale.bandwidth())
+                        .attr("height", yScale.bandwidth())
+                        .attr("fill", (d) => colorScale(d.Data_value))
+                        .selectAll("title")
+                        .remove();
+
+                      cells.select("title").remove();
+                      cells
+                        .append("title")
+                        .text(
+                          (d) =>
+                            `Race: ${d.Break_Out}\nAge: ${d.Response}\nValue: ${d.Data_value}\nSample: ${d.Sample_Size}`
+                        );
+
+                      cells.exit().remove();
+                    }
+
+                    // Initial draw with the clicked state
+                    const initialYear = +d3
+                      .select("#yearSlider")
+                      .property("value");
+                    d3.select("#stateSelect").property("value", stateName); // Default to clicked state
+                    updateHeatmap(stateName, initialYear);
+
+                    // Event listeners
+                    d3.select("#stateSelect").on("change", function () {
+                      const state = this.value;
+                      const year = +d3.select("#yearSlider").property("value");
+                      updateHeatmap(state, year);
+                    });
+
+                    d3.select("#yearSlider").on("input", function () {
+                      const year = +this.value;
+                      d3.select("#yearLabel").text(year);
+                      const state = d3.select("#stateSelect").property("value");
+                      updateHeatmap(state, year);
+                    });
+
+                    d3.select("#playBtn").on("click", function () {
+                      if (playInterval) clearInterval(playInterval);
+                      let year = +d3.select("#yearSlider").property("value");
+                      playInterval = setInterval(() => {
+                        year++;
+                        if (year > +d3.select("#yearSlider").attr("max"))
+                          year = +d3.select("#yearSlider").attr("min");
+                        d3.select("#yearSlider").property("value", year);
+                        d3.select("#yearLabel").text(year);
+                        const state = d3
+                          .select("#stateSelect")
+                          .property("value");
+                        updateHeatmap(state, year);
+                      }, 1000);
+                    });
+
+                    d3.select("#pauseBtn").on("click", function () {
+                      if (playInterval) clearInterval(playInterval);
+                    });
+                  })
+                  .catch((err) => console.error(err));
               }
             }
 
@@ -493,7 +469,8 @@
               document.getElementById("chart").appendChild(chart);
             })
             .catch((err) => console.error("fail to load topojson:", err));
-        } 
+        }
+
         
         
     // bar graph
@@ -518,7 +495,7 @@
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // x-axis
+    // x-axis (regions)
     const x = d3
       .scaleBand()
       .domain(data.map((d) => d.region))
@@ -586,11 +563,6 @@
         .select("body")
         .append("div")
         .attr("class", "tooltip")
-        .style("position", "absolute")
-        .style("background", "lightgray")
-        .style("padding", "5px")
-        .style("border-radius", "5px")
-        .style("pointer-events", "none")
         .html(
           `<strong>${d.region}</strong><br/>Average Obesity: ${d.obesity}%`
         );
@@ -641,13 +613,8 @@
         .select("body")
         .append("div")
         .attr("class", "tooltip")
-        .style("position", "absolute")
-        .style("background", "lightgray")
-        .style("padding", "5px")
-        .style("border-radius", "5px")
-        .style("pointer-events", "none")
         .html(
-          `<strong>${d.region}</strong><br/>Average Income: $${d.income.toLocaleString()}`
+          `<strong>${d.region}</strong><br/>Average Median Household Income: $${d.income.toLocaleString()}`
         );
       return tooltip;
     }
@@ -675,10 +642,10 @@
       .attr("transform", `translate(0, ${height + 40})`); // Position below x-axis
 
     const lines = [
-      "South States: Alabama, Georgia, Tennessee, Texas",
-      "West States: Arizona, California, Nevada, New Mexico, Utah",
-      "Midwest States: Illinois, Indiana, Missouri, Nebraska, Ohio",
-      "Northeast States: New Jersey, New York, Massachusetts, Maine",
+      "South: Alabama, Arkansas, Delaware, District of Columbia, Florida, Georgia, Kentucky, Louisiana, Maryland, Mississippi, North Carolina, Oklahoma, South Carolina, Tennessee, Texas, Virginia, and West Virginia.",
+      "West: Alaska, Arizona, California, Colorado, Hawaii, Idaho, Montana, Nevada, New Mexico, Oregon, Utah, Washington, and Wyoming.",
+      "Northeast: Connecticut, Maine, Massachusetts, New Hampshire, New Jersey, New York, Pennsylvania, Rhode Island, and Vermont.",
+      "Midwest: Illinois, Indiana, Iowa, Kansas, Michigan, Minnesota, Missouri, Nebraska, North Dakota, Ohio, South Dakota, and Wisconsin.",
     ];
 
     // Append a separate text for each line

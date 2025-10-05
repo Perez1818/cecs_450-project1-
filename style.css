@@ -1,70 +1,44 @@
-/* popup */
+.control-panel {
+  margin: 10px;
+}
+
+.tooltip {
+  position: absolute;
+  background: lightgray;
+  padding: 5px;
+  border-radius: 5px;
+  pointer-events: none;
+}
+
 .popup {
   position: fixed;
-  width: 50%;    
-  right: 0; 
+  top: 0;
+  right: 0;
+  width: 60%;
+  height: 100vh;
   background: white;
-  border: 1px solid #ccc;
-  box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+  border: 1px solid #000000;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
   padding: 10px;
-  z-index: 1000;
   overflow: auto;
+  z-index: 1000;
 }
 
-.popup1 {
-  top: 8px;         
-  height: 47.5%;     
+.popup-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-weight: bold;
 }
 
-.popup2 {
-  bottom: 0;        
-  height: 47%;    
-}
-
-.popup.active{
-    display: block;
-}
-.popup2.active {
-    display: block;
-}
-
-/* close button */
 .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    color: #110b0b;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 5px;
 }
 
-/*chart */
-#chart {
-    z-index: 1000;
-    position: fixed;
-    top: 10px;
-    left: 0;
-    width: 50vw;
-    height: 100vh;
-}
-
-#dataChoice {
-  position: relative;
-  z-index: 2000;
-}
-
-/*tooltip*/
-.tooltip {
-    position: absolute;
-    text-align: center;
-    width: auto;
-    height: auto;
-    padding: 5px;
-    font: 12px sans-serif;
-    background: lightsteelblue;
-    border: 0px;
-    border-radius: 8px;
-    pointer-events: none;
-    opacity: 0.9;
-    z-index: 1000;
+.heatmap-container {
+  margin-top: 10px;
+  padding: 10px;
 }
