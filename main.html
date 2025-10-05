@@ -28,6 +28,7 @@
       //- topology: topojson.js: https://unpkg.com/topojson@3
       //- html: how to use d3 code: https://d3js.org/getting-started
       //- Combine Zoomed map with pie chart: ChatGPT
+      //- Bargraph with tooltips: Co-pilot, ChatGPT
       //- Change Color Map: ChatGPT
       //- Tool: Visual Studio Code
       //- Data source: Obesity data from CDC 2019: https://www.cdc.gov/obesity/data/prevalence-maps.html
@@ -373,11 +374,6 @@
                 const pieHeight2 = window.innerHeight;
                 const radius2 = Math.min(pieWidth2, pieHeight2) / 2 - 20; // radius of the pie chart
 
-                // Create the color for piechart.
-                const color2 = d3
-                  .scaleOrdinal()
-                  .domain(data.map((d) => d.name))
-                  .range(["#808080", "#F5F5DC", "#8B4513"]); // Gray, Beige, Brown
 
                 // Create the pie layout and arc generator.
                 const pie2 = d3
@@ -425,7 +421,7 @@
                   .selectAll()
                   .data(arcs2)
                   .join("path")
-                  .attr("fill", (d) => color2(d.data.name))
+                  .attr("fill", (d) => color(d.data.name))
                   .attr("d", arc2)
                   .append("title")
                   .text(
@@ -496,13 +492,16 @@
               document.getElementById("chart").appendChild(chart);
             })
             .catch((err) => console.error("fail to load topojson:", err));
-        } else if (choice === "bar") {
+        } 
+        
+        
+    // bar graph
+    else if (choice === "bar") {
         async function createBarChart() {
          let data = await getBarData();
          if (!data || !data.length) {
             console.error("Check data in bargraph.js");
-           return;
-    }
+           return;}
 
     // margin of the window (page)
     const margin = { top: 60, right: 300, bottom: 100, left: 300 };
@@ -524,6 +523,10 @@
       .domain(data.map((d) => d.region))
       .range([0, width])
       .padding(0.2);
+
+      g.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(x));
 
     // y-axis left side is obesity %
     const yLeft = d3
@@ -564,11 +567,7 @@
       .style("font-size", "20px")
       .style("font-weight", "bold")
       .text("Obesity vs Income by Region");
-
-    g.append("g")
-      .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(x));
-
+    
    
     // create the bar as rectangle, in blue color
     const bars = g.selectAll("rect")
@@ -597,18 +596,19 @@
       return tooltip;
     }
 
+    // when the mouse moves in the hovering section
     function moveObesityTooltip(event) {
       d3.select(".tooltip")
         .style("left", event.pageX + 10 + "px")
         .style("top", event.pageY - 10 + "px");
     }
 
+    // when the mouse moves out of the hovering section
     function hideObesityTooltip() {
       d3.select(".tooltip").remove();
     }
 
-    bars
-      .on("mouseover", showObesityTooltip)
+    bars.on("mouseover", showObesityTooltip)
       .on("mousemove", moveObesityTooltip)
       .on("mouseout", hideObesityTooltip);
 
@@ -651,12 +651,14 @@
       return tooltip;
     }
 
+    // when the mouse moves in the hovering section
     function moveIncomeTooltip(event) {
       d3.select(".tooltip")
         .style("left", event.pageX + 10 + "px")
         .style("top", event.pageY - 10 + "px");
     }
 
+    // when the mouse moves out of the hovering section
     function hideIncomeTooltip() {
       d3.select(".tooltip").remove();
     }
@@ -678,7 +680,7 @@
       "Northeast States: New Jersey, New York, Massachusetts, Maine",
     ];
 
-    // Append a separate <text> for each line
+    // Append a separate text for each line
     placeholderG
       .selectAll("text")
       .data(lines)
