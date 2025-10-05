@@ -40,8 +40,8 @@ async function fetchBarData() {
         // Calculate averages
         Object.keys(regionData).forEach(region => {
             const vals = regionData[region];
-            regionData[region].obesity = (vals.obesity / vals.count).toFixed(1);
-            regionData[region].income = (vals.income / vals.count).toFixed(0);
+            regionData[region].obesity = (vals.obesity / vals.count).toFixed(1); // one decimal place
+            regionData[region].income = (vals.income / vals.count).toFixed(0); // no decimal placce
         });
 
         return Object.entries(regionData).map(([region, vals]) => ({
