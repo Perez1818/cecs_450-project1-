@@ -90,5 +90,3 @@ function getAgeData(stateName) {
 }
 
 
-
-// https://docs.google.com/spreadsheets/d/1zZrav-m7Iiusnop32WciLK8b4uKGTyTwUM-wvTPTVZI/export?format=csv&gid=1025716626

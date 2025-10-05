@@ -65,16 +65,3 @@ async function getBarData() {
     }));
 }
 
-// Test function to verify data fetching
-async function testGetBarData() {
-    console.log('Starting test...');
-    const data = await getBarData();
-    if (data) {
-        console.log('Bar Data:', data);
-    } else {
-        console.log('Failed to fetch bar data');
-    }
-}
-
-// Run the test
-testGetBarData();
