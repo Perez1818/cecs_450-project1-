@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Age × Race Heatmap with Timeline</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .cell { stroke: #fff; }
+        .axis text { font-size: 12px; }
+        #controls { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label for="stateSelect">Select State:</label>
+        <select id="stateSelect"></select>
+        <label for="yearSlider">Year:</label>
+        <input type="range" id="yearSlider" min="2013" max="2023" step="1" value="2023">
+        <span id="yearLabel">2023</span>
+        <button id="playBtn">Play</button>
+        <button id="pauseBtn">Pause</button>
+    </div>
+    <div id="heatmap"></div>
+
+    <script>
+    const margin = {top: 50, right: 50, bottom: 100, left: 120},
+          width = 900 - margin.left - margin.right,
+          height = 500 - margin.top - margin.bottom;
+
+    const svg = d3.select("#heatmap")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    let dataGlobal;
+    let playInterval;
+
+    d3.csv("Behavioral_Risk_Factor_Surveillance_System.csv").then(data => {
+        // Chuyển số
+        data.forEach(d => {
+            d.Sample_Size = +d.Sample_Size.replace(/,/g, "");
+            d.Data_value = +d.Data_value;
+            d.Year = +d.Year;
+        });
+        dataGlobal = data;
+
+        // Dropdown states
+        const states = [...new Set(data.map(d => d.Locationdesc))];
+        const stateSelect = d3.select("#stateSelect");
+        states.forEach(s => stateSelect.append("option").text(s).attr("value", s));
+
+        // Unique ages & races
+        const ages = [...new Set(data.filter(d => d.Topic==="Age").map(d=>d.Response))];
+        const races = [...new Set(data.filter(d => d.Break_Out_Category==="Race/Ethnicity").map(d=>d.Break_Out))];
+
+        const xScale = d3.scaleBand().domain(races).range([0,width]).padding(0.05);
+        const yScale = d3.scaleBand().domain(ages).range([0,height]).padding(0.05);
+        const colorScale = d3.scaleSequential().interpolator(d3.interpolateBlues);
+
+        // Axes
+        svg.append("g").attr("transform", `translate(0,${height})`).attr("class","xAxis")
+            .call(d3.axisBottom(xScale)).selectAll("text").attr("transform","rotate(-45)").style("text-anchor","end");
+        svg.append("g").attr("class","yAxis").call(d3.axisLeft(yScale));
+
+        function updateHeatmap(state, year) {
+            const filtered = dataGlobal.filter(d => 
+                d.Topic==="Age" && 
+                d.Break_Out_Category==="Race/Ethnicity" && 
+                d.Locationdesc===state && 
+                d.Year===+year
+            );
+
+            colorScale.domain([0, d3.max(filtered, d=>d.Data_value)]);
+
+            const cells = svg.selectAll(".cell").data(filtered, d => d.Response + d.Break_Out);
+
+            cells.enter()
+                .append("rect")
+                .attr("class","cell")
+                .merge(cells)
+                .transition().duration(300)
+                .attr("x", d=>xScale(d.Break_Out))
+                .attr("y", d=>yScale(d.Response))
+                .attr("width", xScale.bandwidth())
+                .attr("height", yScale.bandwidth())
+                .attr("fill", d=>colorScale(d.Data_value))
+                .selectAll("title").remove();
+
+            cells.select("title").remove();
+            cells.append("title").text(d => `Race: ${d.Break_Out}\nAge: ${d.Response}\nValue: ${d.Data_value}\nSample: ${d.Sample_Size}`);
+
+            cells.exit().remove();
+        }
+
+        // Initial draw
+        const initialState = states[0];
+        const initialYear = +d3.select("#yearSlider").property("value");
+        updateHeatmap(initialState, initialYear);
+
+        // Event listeners
+        d3.select("#stateSelect").on("change", function(){
+            const state = this.value;
+            const year = +d3.select("#yearSlider").property("value");
+            updateHeatmap(state, year);
+        });
+
+        d3.select("#yearSlider").on("input", function(){
+            const year = +this.value;
+            d3.select("#yearLabel").text(year);
+            const state = d3.select("#stateSelect").property("value");
+            updateHeatmap(state, year);
+        });
+
+        d3.select("#playBtn").on("click", function(){
+            if(playInterval) clearInterval(playInterval);
+            let year = +d3.select("#yearSlider").property("value");
+            playInterval = setInterval(()=>{
+                year++;
+                if(year > +d3.select("#yearSlider").attr("max")) year = +d3.select("#yearSlider").attr("min");
+                d3.select("#yearSlider").property("value",year);
+                d3.select("#yearLabel").text(year);
+                const state = d3.select("#stateSelect").property("value");
+                updateHeatmap(state, year);
+            }, 1000);
+        });
+
+        d3.select("#pauseBtn").on("click", function(){
+            if(playInterval) clearInterval(playInterval);
+        });
+    }).catch(err=>console.error(err));
+    </script>
+</body>
+</html>
