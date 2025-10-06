@@ -45,6 +45,12 @@
         clearChart();
         if (choice === "race and Age") {
           function Chart(us) {
+            //add title to the chart
+            const chartTitle = document.createElement("h2");
+            chartTitle.textContent = "Obesity Rate by State (2015)";
+            chartTitle.style.textAlign = "Left";
+            chartTitle.style.marginLeft = "200px";
+            document.getElementById("chart").appendChild(chartTitle);
             const width = window.innerWidth * 0.5;
             const height = window.innerHeight;
 
@@ -128,6 +134,7 @@
                 path(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
               );
             svg.call(zoom);
+            
             /**** Adding simple legend for 0%, 50%, 100% ****/
             const legend = svg
               .append("g")
@@ -303,10 +310,10 @@
                 let dataGlobal;
                 let playInterval;
 
-                d3.csv("Behavioral_Risk_Factor_Surveillance_System.csv")
+                d3.csv("Behavioral_Risk_Factor_Surveillance_System_(BRFSS).csv")
                   .then((data) => {
                     data.forEach((d) => {
-                      d.Sample_Size = +d.Sample_Size.replace(/,/g, "");
+                      d.Sample_Size = +d.Sample_Size;
                       d.Data_value = +d.Data_value;
                       d.Year = +d.Year;
                     });
